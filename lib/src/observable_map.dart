@@ -190,7 +190,9 @@ class ObservableMap<K, V> extends Observable implements Map<K, V> {
 
   @override
   void addEntries(Iterable<MapEntry<K, V>> entries) {
-    _map.addEntries(entries);
+    for (var entry in entries) {
+      this[entry.key] = entry.value;
+    }
   }
 
   @override
@@ -200,15 +202,21 @@ class ObservableMap<K, V> extends Observable implements Map<K, V> {
 
   @override
   V update(K key, V Function(V value) update, {V Function() ifAbsent}) {
-    return _map.update(key, update, ifAbsent: ifAbsent);
+    var value = containsKey(key) ? update(this[key]) : ifAbsent();
+    return this[key] = value;
   }
 
   @override
-  void updateAll(V Function(K key, V value) update) => _map.updateAll(update);
+  void updateAll(V Function(K key, V value) update) {
+    for (var key in keys) {
+      this[key] = update(key, this[key]);
+    }
+  }
 
   @override
-  void removeWhere(bool Function(K key, V value) test) =>
-      _map.removeWhere(test);
+  void removeWhere(bool Function(K key, V value) test) {
+    keys.where((key) => test(key, this[key])).toList().forEach(remove);
+  }
 
   // Note: we don't really have a reasonable old/new value to use here.
   // But this should fix "keys" and "values" in templates with minimal overhead.

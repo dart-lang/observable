@@ -91,7 +91,7 @@ void main() {
   });
 
   group('observe item', () {
-    ObservableMap map;
+    ObservableMap<String, int> map;
     List<ChangeRecord> changes;
 
     setUp(() {
@@ -182,6 +182,47 @@ void main() {
           _removeKey('b', 2),
           _insertKey('b', 2),
         ]);
+      });
+    });
+
+    test('change the item as part of addAll', () {
+      map.addAll({'b': 13, 'd': 4});
+      expect(map, {'a': 1, 'b': 13, 'c': 3, 'd': 4});
+      return Future(() {
+        expect(changes, [_changeKey('b', 2, 13)]);
+      });
+    });
+
+    test('change the item as part of addEntries', () {
+      map.addEntries(
+          [MapEntry<String, int>('b', 13), MapEntry<String, int>('d', 4)]);
+      expect(map, {'a': 1, 'b': 13, 'c': 3, 'd': 4});
+      return Future(() {
+        expect(changes, [_changeKey('b', 2, 13)]);
+      });
+    });
+
+    test('update the item', () {
+      map.update('b', (int value) => value + 1);
+      expect(map, {'a': 1, 'b': 3, 'c': 3});
+      return Future(() {
+        expect(changes, [_changeKey('b', 2, 3)]);
+      });
+    });
+
+    test('update all items', () {
+      map.updateAll((String key, int value) => value + 1);
+      expect(map, {'a': 2, 'b': 3, 'c': 4});
+      return Future(() {
+        expect(changes, [_changeKey('b', 2, 3)]);
+      });
+    });
+
+    test('remove the item as part of removeWhere', () {
+      map.removeWhere((key, value) => value > 1);
+      expect(map, {'a': 1});
+      return Future(() {
+        expect(changes, [_removeKey('b', 2)]);
       });
     });
   });
